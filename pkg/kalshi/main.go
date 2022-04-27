@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/fsctl/go-kalshi/pkg/kalshi/swagger"
 )
@@ -44,7 +45,18 @@ func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 		return
 	}
 
-	for _, market := range userGetMarketsResponse.Markets {
-		fmt.Printf("Title:  %v, Category:  %v\n", market.Title, market.Category)
+	ranges := make(map[string][]swagger.Market)
+	for _, mkt := range userGetMarketsResponse.Markets {
+		var t time.Time = mkt.CloseDate
+		if !t.Before(time.Now()) {
+			ranges[mkt.RangedGroupTicker] = append(ranges[mkt.RangedGroupTicker], mkt)
+		}
 	}
+	for k, v := range ranges {
+		fmt.Printf("%v:\n", k)
+		for _, market := range v {
+			fmt.Printf("  %v\n", market.Title)
+		}
+	}
+	fmt.Printf("\n----------------------------------------------------\n\n")
 }

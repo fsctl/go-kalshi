@@ -2,13 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/fsctl/go-kalshi/pkg/kalshi"
 )
 
+var Version = "" // set by go build -ldflags
+
 func main() {
+	fmt.Printf("list-markets (%s)\n", Version)
+
 	ctx := context.Background()
 
 	username := os.Getenv("KALSHI_USERNAME")
