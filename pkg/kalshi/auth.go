@@ -35,11 +35,11 @@ func getAuthToken(ctx context.Context, kalshiUsername string, kalshiPassword str
 	}
 	defer resp.Body.Close()
 
-	var authTokenResp AuthToken
-	if err := json.NewDecoder(resp.Body).Decode(&authTokenResp); err != nil {
+	var authToken AuthToken
+	if err := json.NewDecoder(resp.Body).Decode(&authToken); err != nil {
 		log.Fatalf("ERROR:  decoding auth token response:  '%v'\n", err)
 		return nil, err
 	}
 
-	return &authTokenResp, nil
+	return &authToken, nil
 }
