@@ -11,8 +11,6 @@ import (
 func main() {
 	ctx := context.Background()
 
-	Main2Hello()
-
 	username := os.Getenv("KALSHI_USERNAME")
 	password := os.Getenv("KALSHI_PASSWORD")
 	if username == "" || password == "" {
