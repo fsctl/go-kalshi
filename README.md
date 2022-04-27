@@ -4,6 +4,8 @@ Experimental Go wrapper for Kalshi API
 
 ## Instructions
 
+Build the program:
+
 ```
 git clone <this repo>
 cd go-kalshi

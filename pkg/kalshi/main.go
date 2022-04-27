@@ -7,10 +7,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/fsctl/go-kalshi/pkg/kalshi/swagger"
-	//"github.com/fsctl/go-kalshi/pkg/kalshi/KalshiSwagger"
 )
 
 const (
@@ -27,20 +25,6 @@ func (a AuthToken) Text() string {
 	p := fmt.Sprintf(
 		"Token: %s\nUserId : %s\nAccessLevel: %s\n",
 		a.Token, a.UserId, a.AccessLevel)
-	return p
-}
-
-type Client struct {
-	BaseURL    string
-	userId     string
-	token      string
-	HTTPClient *http.Client
-}
-
-func (c Client) Text() string {
-	p := fmt.Sprintf(
-		"Token: %s\nUserId : %s\nBaseURL: %s\n",
-		c.token, c.userId, c.BaseURL)
 	return p
 }
 
@@ -75,26 +59,15 @@ func getAuthToken(ctx context.Context, kalshiUsername string, kalshiPassword str
 	return &authTokenResp, nil
 }
 
-func NewClient(ctx context.Context, kalshiUsername string, kalshiPassword string) (*Client, error) {
+func PrintMarketsList(ctx context.Context, kalshiUsername string, kalshiPassword string) {
 	authToken, err := getAuthToken(ctx, kalshiUsername, kalshiPassword)
 	if err != nil {
 		log.Fatalf("ERROR:  getAuthToken failed:  '%v'\n", err)
-		return nil, err
+		return
 	}
 
-	return &Client{
-		BaseURL: BaseURLV1,
-		userId:  authToken.UserId,
-		token:   authToken.Token,
-		HTTPClient: &http.Client{
-			Timeout: time.Minute,
-		},
-	}, nil
-}
-
-func Printer(ctx context.Context) {
 	cfg := swagger.NewConfiguration()
-	cfg.AddDefaultHeader("Authorization", "f1f9dbfa-810b-4c14-b2fd-91ce2c229bed f1f9dbfa-810b-4c14-b2fd-91ce2c229bed:nsowBaVhS1oE8MxRUG4lQtJmtagAD36WtEkUykcXtk3NKLipnf96WeKjOJ6D5g4b")
+	cfg.AddDefaultHeader("Authorization", fmt.Sprintf("%s %s", authToken.UserId, authToken.Token))
 
 	apiClient := swagger.NewAPIClient(cfg)
 
