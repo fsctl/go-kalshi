@@ -4,11 +4,10 @@ VERSION ?= $(shell git describe --tags --always --dirty)
 
 GOFLAGS ?=
 
-all: #generate
+all:
+	$(MAKE) -C pkg/kalshi
 	$(MAKE) -C cmd
-
-#generate:
-#	rm -rf
 
 clean:
 	@rm list-markets
+	@rm -rf pkg/kalshi/swagger

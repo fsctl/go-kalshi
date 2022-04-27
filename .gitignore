@@ -3,3 +3,6 @@ list-markets
 
 # secrets
 .env
+
+# temporaries
+pkg/kalshi/swagger/outfile.zip
