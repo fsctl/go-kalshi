@@ -8,6 +8,9 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/fsctl/go-kalshi/pkg/kalshi/swagger"
+	//"github.com/fsctl/go-kalshi/pkg/kalshi/KalshiSwagger"
 )
 
 const (
@@ -89,6 +92,19 @@ func NewClient(ctx context.Context, kalshiUsername string, kalshiPassword string
 	}, nil
 }
 
-func Printer() {
-	fmt.Printf("hello, world from kalshi package!\n")
+func Printer(ctx context.Context) {
+	cfg := swagger.NewConfiguration()
+	cfg.AddDefaultHeader("Authorization", "f1f9dbfa-810b-4c14-b2fd-91ce2c229bed f1f9dbfa-810b-4c14-b2fd-91ce2c229bed:nsowBaVhS1oE8MxRUG4lQtJmtagAD36WtEkUykcXtk3NKLipnf96WeKjOJ6D5g4b")
+
+	apiClient := swagger.NewAPIClient(cfg)
+
+	userGetMarketsResponse, _, err := apiClient.MarketApi.GetMarkets(ctx)
+	if err != nil {
+		log.Fatalf("Error from apiClient.MarketApi.GetMarkets:  '%v'", err)
+		return
+	}
+
+	for _, market := range userGetMarketsResponse.Markets {
+		fmt.Printf("Title:  %v, Category:  %v\n", market.Title, market.Category)
+	}
 }
