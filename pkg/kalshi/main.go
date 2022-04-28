@@ -60,3 +60,9 @@ func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 	}
 	fmt.Printf("\n----------------------------------------------------\n\n")
 }
+
+func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
+	_ = ctx
+	_ = id
+	fmt.Printf("TODO TODO TODO...\n\n")
+}
