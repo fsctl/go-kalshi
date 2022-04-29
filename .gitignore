@@ -1,2 +1,8 @@
 # temporaries
 pkg/kalshi/swagger/outfile.zip
+
+# binaries
+/kalshi-tool
+
+# local secrets
+/.env
