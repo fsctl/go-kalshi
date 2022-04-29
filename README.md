@@ -12,7 +12,7 @@ This is currently a package-only repo, so you don't need to clone and build it.
 
 Instead, clone and build a dependent repo like [`fsctl/kot`](https://github.com/fsctl/kot) and it will pull this module in automatically.
 
-#### Regenerating the swagger code
+#### Regenerating the swagger code (optional)
 
 ```
 make clean
