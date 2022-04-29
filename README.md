@@ -8,14 +8,15 @@ It does demonstrate how to codegen Go code from Kalshi's swagger file (available
 
 ## Instructions
 
-This is currently a package-only repo, so you don't need to clone and build it.
+### Using go-kalshi from another repo
 
-Instead, clone and build a dependent repo like [`fsctl/kot`](https://github.com/fsctl/kot) and it will pull this module in automatically.
+For an example of writing an application that depends on `go-kalshi`, check out [`fsctl/go-kalshi-usage-example`](https://github.com/fsctl/go-kalshi-usage-example).  Follow the build instructions in that repo and it will pull in `go-kalshi` automatically.
 
-#### Regenerating the swagger code (optional)
+### Using the `kalshi-tool` command in this repo
+
+This repo contains an example command called `kalshi-tool` that supports interaction with Kalshi on the CLI.  First, create a `.env` file modeled after the example one in the root of this repo.  Then, build and run:
 
 ```
-make clean
 make
+./kalshi-tool
 ```
-
