@@ -64,5 +64,5 @@ func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
 	_ = ctx
 	_ = id
-	fmt.Printf("TODO TODO TODO...\n\n")
+	fmt.Printf("TODO TODO...\n\n")
 }
