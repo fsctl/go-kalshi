@@ -2,7 +2,7 @@
 
 Experimental Go wrapper for Kalshi API.
 
-This is just a **work-in-progress** and doesn't do much useful yet.
+This is just a work-in-progress and doesn't do much that's useful yet.
 
 It does demonstrate how to codegen Go code from Kalshi's swagger file (available [here](https://kalshi-public-docs.s3.amazonaws.com/KalshiAPI.html)) and use that to build higher level abstractions atop the Kalshi API.  See `pkg/kalshi/Makefile`.
 
