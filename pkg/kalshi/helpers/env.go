@@ -10,7 +10,7 @@ func ReadEnvFile() (string, string) {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatalf("Error in readEnvFile: '%v'\n", err)
+		log.Fatalf("Error in ReadEnvFile: '%v'\n", err)
 	}
 	kalshiUsername, ok := viper.Get("KALSHI_USERNAME").(string)
 	if !ok {
