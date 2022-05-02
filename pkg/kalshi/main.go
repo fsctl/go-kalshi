@@ -84,10 +84,6 @@ func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
 	}
 	fmt.Printf("(%v) %v\n\n", userGetMarketResponse.Market.TickerName, userGetMarketResponse.Market.Title)
 
-	fmt.Printf("Yes\n")
-	fmt.Printf("  Bid:  %.2f\n", float64(userGetMarketResponse.Market.YesBid)/100)
-	fmt.Printf("  Ask:  %.2f\n\n", float64(userGetMarketResponse.Market.YesAsk)/100)
-
 	getMarketOrderBookResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarketOrderBook(ctx, id)
 	if err != nil {
 		log.Fatalf("Error in PrintMarket: '%v'\n", err)
@@ -95,111 +91,59 @@ func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
 	}
 	yesOrderBook := getMarketOrderBookResponse.OrderBook.Yes
 	noOrderBook := getMarketOrderBookResponse.OrderBook.No
+	mostExpensiveYesBid := float64(0.00)
+	mostExpensiveNoBid := float64(0.00)
 	fmt.Printf("Yes order book (bids)\n")
 	for _, row := range yesOrderBook {
 		price := fmt.Sprintf("%.2f", float64(row[0])/100)
+		if float64(row[0])/100 > mostExpensiveYesBid {
+			mostExpensiveYesBid = float64(row[0]) / 100
+		}
 		qty := row[1]
 		fmt.Printf("  %v (%v contracts)\n", price, qty)
 	}
 	fmt.Printf("No order book (bids)\n")
 	for _, row := range noOrderBook {
 		price := fmt.Sprintf("%.2f", float64(row[0])/100)
+		if float64(row[0])/100 > mostExpensiveNoBid {
+			mostExpensiveNoBid = float64(row[0]) / 100
+		}
 		qty := row[1]
 		fmt.Printf("  %v (%v contracts)\n", price, qty)
 	}
-}
 
-/*
-
-type bidAskQty struct {
-	bidQty int64
-	askQty int64
-}
-
-func (kc *KalshiClient) PrintMarket2(ctx context.Context, id string) {
-	userGetMarketResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarket(ctx, id)
-	if err != nil {
-		log.Fatalf("Error in PrintMarket: '%v'\n", err)
-		return
-	}
-	fmt.Printf("(%v) %v\n\n", userGetMarketResponse.Market.TickerName, userGetMarketResponse.Market.Title)
-
-	fmt.Printf("Yes\n")
-	fmt.Printf("  Bid:  %.2f\n", float64(userGetMarketResponse.Market.YesBid)/100)
-	fmt.Printf("  Ask:  %.2f\n\n", float64(userGetMarketResponse.Market.YesAsk)/100)
-
-	getMarketOrderBookResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarketOrderBook(ctx, id)
-	if err != nil {
-		log.Fatalf("Error in PrintMarket: '%v'\n", err)
-		return
-	}
-
-	yesOrderBookRows := make(map[string]bidAskQty)
-	populateAllPrices(&yesOrderBookRows)
-	yesOrderBookResponseBids := getMarketOrderBookResponse.OrderBook.Yes
-	transformApiOrderBook(yesOrderBookResponseBids, &yesOrderBookRows)
-	fmt.Printf("-- YES ORDER BOOK --\n")
-	fmt.Printf("Price\tBid Qty\tAsk Qty\n")
-	keys := make([]string, 0, len(yesOrderBookRows))
-	for k := range yesOrderBookRows {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		v := yesOrderBookRows[k]
-		fmt.Printf("%v\t%v\t%v\n", k, v.bidQty, v.askQty)
-	}
 	fmt.Printf("\n")
-
-	noOrderBookRows := make(map[string]bidAskQty)
-	populateAllPrices(&noOrderBookRows)
-	noOrderBookResponseBids := getMarketOrderBookResponse.OrderBook.No
-	transformApiOrderBook(noOrderBookResponseBids, &noOrderBookRows)
-	fmt.Printf("-- NO ORDER BOOK --\n")
-	fmt.Printf("Price\tBid Qty\tAsk Qty\n")
-	keys = make([]string, 0, len(noOrderBookRows))
-	for k := range noOrderBookRows {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		v := noOrderBookRows[k]
-		fmt.Printf("%v\t%v\t%v\n", k, v.bidQty, v.askQty)
+	if mostExpensiveYesBid > 0.00 && mostExpensiveNoBid > 0.00 {
+		fmt.Printf("If you predict Yes:\n")
+		fmt.Printf("  - You can open a Yes position for (1-%.2f) = %.2f and close it (buy No) for (1-%.2f) = %.2f\n", mostExpensiveNoBid, 1-mostExpensiveNoBid, mostExpensiveYesBid, 1-mostExpensiveYesBid)
+		fmt.Printf("  - Open:  kalshi-tool order --action open-yes  --ticker=%v --contracts 1 --limit %.2f\n", userGetMarketResponse.Market.TickerName, 1-mostExpensiveNoBid)
+		fmt.Printf("  - Close: kalshi-tool order --action close-yes --ticker=%v --contracts 1 --limit %.2f\n", userGetMarketResponse.Market.TickerName, 1-mostExpensiveYesBid)
+		fmt.Printf("If you predict No:\n")
+		fmt.Printf("  - You can open a No position for (1-%.2f) = %.2f and close it (buy Yes) for (1-%.2f) = %.2f\n", mostExpensiveYesBid, 1-mostExpensiveYesBid, mostExpensiveNoBid, 1-mostExpensiveNoBid)
+		fmt.Printf("  - Open:  kalshi-tool order --action open-no  --ticker=%v --contracts 1 --limit %.2f\n", userGetMarketResponse.Market.TickerName, 1-mostExpensiveYesBid)
+		fmt.Printf("  - Close: kalshi-tool order --action close-no --ticker=%v --contracts 1 --limit %.2f\n", userGetMarketResponse.Market.TickerName, 1-mostExpensiveNoBid)
 	}
 }
 
-func populateAllPrices(orderBookRows *map[string]bidAskQty) {
-	for i := 1; i <= 99; i++ {
-		iAsFloat := float64(i) / 100
-		iAsStr := fmt.Sprintf("%.2f", iAsFloat)
-		(*orderBookRows)[iAsStr] = bidAskQty{
-			bidQty: int64(0),
-			askQty: int64(0),
-		}
-	}
+type MarketSide int64
+
+const (
+	Yes = iota
+	No
+)
+
+func (kc *KalshiClient) OrderOpenPosition(marketId string, side MarketSide, contracts int, limit float64) error {
+	fmt.Printf("\nSUBCOMMAND NOT YET IMPLEMENTED\n")
+
+	// open a new position on side
+
+	return nil
 }
 
-func transformApiOrderBook(apiOrderBookBids [][]int32, orderBookRows *map[string]bidAskQty) {
-	for _, row := range apiOrderBookBids {
-		priceBid := float64(row[0]) / 100
-		priceBidAsStr := fmt.Sprintf("%.2f", priceBid)
-		bidQty := row[1]
-		if val, ok := (*orderBookRows)[priceBidAsStr]; ok {
-			(*orderBookRows)[priceBidAsStr] = bidAskQty{
-				bidQty: int64(bidQty),
-				askQty: val.askQty,
-			}
-		}
+func (kc *KalshiClient) OrderClosePosition(marketId string, side MarketSide, contracts int, limit float64) error {
+	fmt.Printf("\nSUBCOMMAND NOT YET IMPLEMENTED\n")
 
-		priceAsk := 1.0 - priceBid
-		priceAskAsStr := fmt.Sprintf("%.2f", priceAsk)
-		askQty := row[1]
-		if val, ok := (*orderBookRows)[priceAskAsStr]; ok {
-			(*orderBookRows)[priceAskAsStr] = bidAskQty{
-				bidQty: val.bidQty,
-				askQty: int64(askQty),
-			}
-		}
-	}
+	// check that user has enough contracts on side, then open a new position on opposite side
+
+	return nil
 }
-*/
