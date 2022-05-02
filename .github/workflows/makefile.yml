@@ -3,8 +3,9 @@ name: go-kalshi CI
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  # Commented out to prevennt malicious PRs from running this file
+  #pull_request:
+  #  branches: [ main ]
 
 jobs:
   build:
