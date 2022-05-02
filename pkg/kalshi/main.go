@@ -53,10 +53,10 @@ func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 		}
 	}
 	for k, v := range ranges {
-		fmt.Printf("%v:\n", k)
 		for _, market := range v {
-			fmt.Printf("  %v (%v)\n", market.Title, market.TickerName)
+			fmt.Printf("[%v] %v (%v)\n", k, market.Title, market.TickerName)
 		}
+		fmt.Printf("\n")
 	}
 }
 
