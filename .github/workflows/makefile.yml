@@ -1,0 +1,42 @@
+name: go-kalshi-usage-example CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+ 
+    runs-on: ubuntu-latest
+
+    steps:
+    # Check out repo under $GITHUB_WORKSPACE
+    - uses: actions/checkout@v3
+    
+    # Setup Go
+    - name: Setup Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: '1.18.0'
+    
+    # Install all the dependencies
+    - name: Install dependencies
+      run: |
+        go version
+        go get -u golang.org/x/lint/golint
+    
+    # Build the program
+    - name: Run build
+      run: make
+      
+    # Create .env file from secrets
+    - name: Create .env file
+      run: |
+        echo -ne "KALSHI_USERNAME=\"${{ secrets.KALSHI_USERNAME }}\"\n" > .env
+        echo -ne "KALSHI_PASSWORD=\"${{ secrets.KALSHI_PASSWORD }}\"\n" >> .env
+    
+    # Run the program
+    - name: Run program
+      run: ./kalshi-tool list-markets
