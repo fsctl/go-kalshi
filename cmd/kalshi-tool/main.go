@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/fsctl/go-kalshi/pkg/kalshi"
+	"github.com/fsctl/go-kalshi/pkg/kalshi/helpers"
 )
 
 func usage() {
@@ -32,7 +33,7 @@ The market subcommand takes a ticker for a single binary option and prints its Y
 func main() {
 	ctx := context.Background()
 
-	kalshiUsername, kalshiPassword := readEnvFile()
+	kalshiUsername, kalshiPassword := helpers.ReadEnvFile()
 
 	kc, err := kalshi.NewKalshiClient(ctx, kalshiUsername, kalshiPassword)
 	if err != nil {

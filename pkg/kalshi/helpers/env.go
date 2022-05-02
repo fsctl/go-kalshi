@@ -1,4 +1,4 @@
-package main
+package helpers
 
 import (
 	"log"
@@ -6,7 +6,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func readEnvFile() (string, string) {
+func ReadEnvFile() (string, string) {
 	viper.SetConfigFile(".env")
 	err := viper.ReadInConfig()
 	if err != nil {
