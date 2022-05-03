@@ -37,6 +37,12 @@ The first command opens a Yes position (buys Yes), assuming there is currently a
 If there's not, it creates a resting order for Yes with a bid price of 0.20.
 The second command closes a Yes position. First it verifies that you have a Yes position of that size or larger,
 then it buys a No position in that amount with a limit price (max you'll pay for No) of 0.50.
+
+'kalshi-tool cancel-resting --order 1250e322-c586-5ffb-bb6e-14a9503b8997'
+The cancel-resting subcommand cancels an order by its id.
+
+'kalshi-tool portfolio'
+The portfolio subcommand prints your current portfolio of contracts.
 `
 
 	fmt.Println(usage)
@@ -59,7 +65,7 @@ func main() {
 		os.Exit(0)
 	}
 
-	// 'market' and 'order' subcommand flags
+	// subcommand flags
 	marketSubCmd := flag.NewFlagSet("market", flag.ExitOnError)
 	marketTicker := marketSubCmd.String("ticker", "", "ticker, e.g., MOON-25 (case sensitive)")
 	orderSubCmd := flag.NewFlagSet("order", flag.ExitOnError)
@@ -67,6 +73,8 @@ func main() {
 	orderAction := orderSubCmd.String("action", "", "one of:  open-yes, open-no, close-yes, close-no")
 	orderContracts := orderSubCmd.Int("contracts", 0, "number of contracts")
 	orderLimit := orderSubCmd.Float64("limit", 0.0, "limit price")
+	cancelRestingSubCmd := flag.NewFlagSet("cancel-resting", flag.ExitOnError)
+	cancelRestingOrderId := cancelRestingSubCmd.String("order", "", "order id returned by successful order subcommmand")
 
 	subcommand := os.Args[1]
 	switch subcommand {
@@ -76,6 +84,12 @@ func main() {
 		marketSubCmd.Parse(os.Args[2:])
 		marketId := kc.GetMarketId(ctx, *marketTicker)
 		kc.PrintMarket(ctx, marketId)
+	case "portfolio":
+		portfolio, err := kc.GetPortfolio(ctx)
+		if err != nil {
+			log.Fatalf("Error in GetPortfolio: %v\n", err)
+		}
+		portfolio.Print()
 	case "order":
 		orderSubCmd.Parse(os.Args[2:])
 
@@ -100,17 +114,29 @@ func main() {
 
 		switch *orderAction {
 		case "open-yes":
-			orderId, err := kc.OrderOpenPosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
+			orderId, isResting, err := kc.OrderOpenPosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: open-yes order failed: %v\n", err)
 			}
-			fmt.Printf("Success: order id: %v\n", orderId)
+			var status string
+			if isResting {
+				status = "resting"
+			} else {
+				status = "executed"
+			}
+			fmt.Printf("Success: order id: %v (%s)\n", orderId, status)
 		case "open-no":
-			orderId, err := kc.OrderOpenPosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
+			orderId, isResting, err := kc.OrderOpenPosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: open-no order failed: %v\n", err)
 			}
-			fmt.Printf("Success: order id: %v\n", orderId)
+			var status string
+			if isResting {
+				status = "resting"
+			} else {
+				status = "executed"
+			}
+			fmt.Printf("Success: order id: %v (%s)\n", orderId, status)
 		case "close-yes":
 			orderId, err := kc.OrderClosePosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
 			if err != nil {
@@ -126,6 +152,19 @@ func main() {
 		default:
 			log.Fatalf("Error: unrecognized action '%v'\n", *orderAction)
 		}
+	case "cancel-resting":
+		cancelRestingSubCmd.Parse(os.Args[2:])
+
+		if *cancelRestingOrderId == "" {
+			log.Fatalf("Error:  cancel-resting:  order id not recognized ('%v')\n", *cancelRestingOrderId)
+		}
+
+		err := kc.CancelRestingOrder(ctx, *cancelRestingOrderId)
+		if err != nil {
+			log.Fatalf("Error in CancelRestingOrder: %v\n", err)
+		}
+
+		fmt.Printf("Success: order canceled\n")
 	default:
 		log.Fatalf("Error: did not recognize subcommand '%v'\n", subcommand)
 	}

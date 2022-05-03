@@ -80,6 +80,21 @@ func (kc *KalshiClient) GetMarketId(ctx context.Context, ticker string) string {
 	return ""
 }
 
+func (kc *KalshiClient) GetMarketTicker(ctx context.Context, marketId string) string {
+	userGetMarketsResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarkets(ctx)
+	if err != nil {
+		log.Fatalf("Error from apiClient.MarketApi.GetMarkets: '%v'", err)
+	}
+
+	for _, market := range userGetMarketsResponse.Markets {
+		if market.Id == marketId {
+			return market.TickerName
+		}
+	}
+	log.Fatalf("Error: could not find market '%v'\n", marketId)
+	return ""
+}
+
 func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
 	userGetMarketResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarket(ctx, id)
 	if err != nil {
@@ -146,7 +161,7 @@ func (kc *KalshiClient) doAuthenticatedRequest(method string, url string, reqBod
 }
 
 // open a new position on side
-func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (string, error) {
+func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (string, bool, error) {
 	// serialize arguments to json
 	userOrderCreateRequest := swagger.UserOrderCreateRequest{
 		Count:              int32(contracts),
@@ -160,7 +175,6 @@ func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, 
 	createReqJson, err := json.Marshal(userOrderCreateRequest)
 	if err != nil {
 		log.Fatalf("Error: json.Marshal(): %v\n", err)
-		return "", err
 	}
 	reqBody := strings.NewReader(string(createReqJson))
 
@@ -170,7 +184,7 @@ func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, 
 	// perform request
 	res, data := kc.doAuthenticatedRequest("POST", url, reqBody)
 	if res.StatusCode != 201 {
-		return "", fmt.Errorf("error: orderopenposition res.statuscode is not 201 (it's %d)", res.StatusCode)
+		return "", false, fmt.Errorf("error: orderopenposition res.statuscode is not 201 (it's %d)", res.StatusCode)
 	}
 
 	// deserialize json
@@ -178,9 +192,8 @@ func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, 
 	if err := json.Unmarshal(data, &userOrderCreateResponse); err != nil {
 		log.Fatalf("Error: failed to unmarshal: %v", err)
 	}
-	//fmt.Printf("\nSuccess: order id: %v (status: %s)\n", userOrderCreateResponse.Order.OrderId, userOrderCreateResponse.Order.Status)
 
-	return userOrderCreateResponse.Order.OrderId, nil
+	return userOrderCreateResponse.Order.OrderId, (userOrderCreateResponse.Order.Status == "resting"), nil
 }
 
 // check that user has enough contracts on side, then open a new position on opposite side
@@ -188,8 +201,22 @@ func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string,
 	return "", fmt.Errorf("error: subcommand not implemented")
 }
 
+func (kc *KalshiClient) CancelRestingOrder(ctx context.Context, orderId string) error {
+	// construct url
+	url := fmt.Sprintf("%s/users/%s/orders/%s", BaseURLV1, kc.authToken.UserId, orderId)
+
+	// perform request
+	reqBody := strings.NewReader("")
+	res, _ := kc.doAuthenticatedRequest("DELETE", url, reqBody)
+	if res.StatusCode != 200 {
+		return fmt.Errorf("error: cancelrestingorder response not 200 (it's %d)", res.StatusCode)
+	}
+
+	return nil
+}
+
 // TODO:
-// - cancel resting order by ID --> return whether it was canceled successfully (fully)
+// - get list of user's resting orders with id's
 // - get user's portfolio (needed to see if OrderClosePosition can be called with likely success)
 //		- how can you tell from UserGetMarketPositions whether contracts are on Yes or No side?
 // - OrderClosePosition
