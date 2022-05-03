@@ -10,6 +10,20 @@ This package does not expose all of the features of the Kalshi API. However, it 
  * Show how to write higher level abstractions atop the Kalshi API
  * Create a simple CLI tool `kalshi-tool` that performs actions like listing markets, displaying market order books, etc.
 
+## Screenshots
+
+Listing all markets containing "CPI":
+
+![screenshot list-markets](/img/screenshot-list-markets.png)
+
+Placing an order to open a new No position in the [moon market](https://kalshi.com/events/MOON-25/markets/MOON-25):
+
+![screenshot order](/img/screenshot-order.png)
+
+`kalshi-tool` usage text:
+
+![screenshot help](/img/screenshot-help.png)
+
 ## Instructions
 
 ### Using the `kalshi-tool` command in this repo
