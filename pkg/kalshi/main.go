@@ -117,7 +117,7 @@ func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string,
 	openOnSide := side.Opposite()
 	orderId, isResting, err := kc.OrderOpenPosition(ctx, marketId, openOnSide, contracts, limit)
 
-	return orderId, isResting, nil
+	return orderId, isResting, err
 }
 
 func (kc *KalshiClient) CancelRestingOrder(ctx context.Context, orderId string) error {
@@ -136,4 +136,3 @@ func (kc *KalshiClient) CancelRestingOrder(ctx context.Context, orderId string) 
 
 // TODO:
 // - get list of user's resting orders with id's
-// - OrderClosePosition
