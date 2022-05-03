@@ -96,28 +96,33 @@ func main() {
 		fmt.Printf("  Action:    %v\n", *orderAction)
 		fmt.Printf("  Contracts: %v\n", *orderContracts)
 		fmt.Printf("  Limit:     %.2f\n", *orderLimit)
+		fmt.Printf("\n")
 
 		switch *orderAction {
 		case "open-yes":
-			kc.OrderOpenPosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
+			orderId, err := kc.OrderOpenPosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: open-yes order failed: %v\n", err)
 			}
+			fmt.Printf("Success: order id: %v\n", orderId)
 		case "open-no":
-			kc.OrderOpenPosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
+			orderId, err := kc.OrderOpenPosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: open-no order failed: %v\n", err)
 			}
+			fmt.Printf("Success: order id: %v\n", orderId)
 		case "close-yes":
-			kc.OrderClosePosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
+			orderId, err := kc.OrderClosePosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: close-yes order failed: %v\n", err)
 			}
+			fmt.Printf("Success: order id: %v\n", orderId)
 		case "close-no":
-			kc.OrderClosePosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
+			orderId, err := kc.OrderClosePosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: close-no order failed: %v\n", err)
 			}
+			fmt.Printf("Success: order id: %v\n", orderId)
 		default:
 			log.Fatalf("Error: unrecognized action '%v'\n", *orderAction)
 		}
