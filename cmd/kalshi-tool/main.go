@@ -118,37 +118,29 @@ func main() {
 			if err != nil {
 				log.Fatalf("Error: open-yes order failed: %v\n", err)
 			}
-			var status string
-			if isResting {
-				status = "resting"
-			} else {
-				status = "executed"
-			}
+			status := isRestingToStatusString(isResting)
 			fmt.Printf("Success: order id: %v (%s)\n", orderId, status)
 		case "open-no":
 			orderId, isResting, err := kc.OrderOpenPosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: open-no order failed: %v\n", err)
 			}
-			var status string
-			if isResting {
-				status = "resting"
-			} else {
-				status = "executed"
-			}
+			status := isRestingToStatusString(isResting)
 			fmt.Printf("Success: order id: %v (%s)\n", orderId, status)
 		case "close-yes":
-			orderId, err := kc.OrderClosePosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
+			orderId, isResting, err := kc.OrderClosePosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: close-yes order failed: %v\n", err)
 			}
-			fmt.Printf("Success: order id: %v\n", orderId)
+			status := isRestingToStatusString(isResting)
+			fmt.Printf("Success: order id: %v (%s)\n", orderId, status)
 		case "close-no":
-			orderId, err := kc.OrderClosePosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
+			orderId, isResting, err := kc.OrderClosePosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: close-no order failed: %v\n", err)
 			}
-			fmt.Printf("Success: order id: %v\n", orderId)
+			status := isRestingToStatusString(isResting)
+			fmt.Printf("Success: order id: %v (%s)\n", orderId, status)
 		default:
 			log.Fatalf("Error: unrecognized action '%v'\n", *orderAction)
 		}
@@ -168,4 +160,14 @@ func main() {
 	default:
 		log.Fatalf("Error: did not recognize subcommand '%v'\n", subcommand)
 	}
+}
+
+func isRestingToStatusString(isResting bool) string {
+	var status string
+	if isResting {
+		status = "resting"
+	} else {
+		status = "executed"
+	}
+	return status
 }

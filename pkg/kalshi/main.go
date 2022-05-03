@@ -94,8 +94,30 @@ func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, 
 }
 
 // check that user has enough contracts on side, then open a new position on opposite side
-func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (string, error) {
-	return "", fmt.Errorf("error: subcommand not implemented")
+func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (string, bool, error) {
+	// Return with error if we have no contracts on 'side' to close
+	ticker := kc.GetMarketTicker(ctx, marketId)
+	portfolio, err := kc.GetPortfolio(ctx)
+	if err != nil {
+		log.Fatalf("Error in GetPortfolio: %v\n", err)
+	}
+
+	var contractsOnSide int64 = 0
+	for _, item := range portfolio.Items {
+		if item.Ticker == ticker {
+			contractsOnSide = item.Contracts
+		}
+	}
+
+	if contractsOnSide < int64(contracts) {
+		return "", false, fmt.Errorf("error: ordercloseposition: cannot close %s position in %v because you have only %d %s contracts (need at least %d)", side.String(), ticker, contractsOnSide, side.String(), contracts)
+	}
+
+	// Buy 'contracts' contracts on opposite of 'side'
+	openOnSide := side.Opposite()
+	orderId, isResting, err := kc.OrderOpenPosition(ctx, marketId, openOnSide, contracts, limit)
+
+	return orderId, isResting, nil
 }
 
 func (kc *KalshiClient) CancelRestingOrder(ctx context.Context, orderId string) error {
@@ -114,6 +136,4 @@ func (kc *KalshiClient) CancelRestingOrder(ctx context.Context, orderId string) 
 
 // TODO:
 // - get list of user's resting orders with id's
-// - get user's portfolio (needed to see if OrderClosePosition can be called with likely success)
-//		- how can you tell from UserGetMarketPositions whether contracts are on Yes or No side?
 // - OrderClosePosition

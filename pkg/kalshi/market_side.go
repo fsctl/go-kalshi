@@ -24,3 +24,15 @@ func (s MarketSide) String() string {
 		return fmt.Sprintf("%d", int(s))
 	}
 }
+
+func (s MarketSide) Opposite() MarketSide {
+	switch s {
+	case Yes:
+		return No
+	case No:
+		return Yes
+	default:
+		log.Fatalf("Error: enum value not found in lookup table '%v'", int(s))
+		return No // arbitrary
+	}
+}
