@@ -170,10 +170,19 @@ func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, 
 	// perform request
 	res, data := kc.doAuthenticatedRequest("POST", url, reqBody)
 
+	if res.StatusCode != 201 {
+		log.Printf("Error: OrderOpenPosition res.StatusCode is not 201 (it's %d)\n", res.StatusCode)
+		return nil
+	}
+
 	// deserialize json
-	// TODO: deserialize the json
-	fmt.Printf("status: %d\n", res.StatusCode)
-	fmt.Printf("body: %s\n", data)
+	var userOrderCreateResponse swagger.UserOrderCreateResponse
+	if err := json.Unmarshal(data, &userOrderCreateResponse); err != nil {
+		log.Fatalf("Error: failed to unmarshal: %v", err)
+	}
+	fmt.Printf("\nSuccess: order id: %v (status: %s)\n",
+		userOrderCreateResponse.Order.OrderId,
+		userOrderCreateResponse.Order.Status)
 
 	return nil
 }
