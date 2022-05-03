@@ -42,7 +42,7 @@ then it buys a No position in that amount with a limit price (max you'll pay for
 The cancel-resting subcommand cancels an order by its id.
 
 'kalshi-tool portfolio'
-The portfolio subcommand prints your current portfolio of contracts.
+The portfolio subcommand prints your current open positions.
 `
 
 	fmt.Println(usage)
