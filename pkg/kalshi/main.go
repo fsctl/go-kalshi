@@ -2,8 +2,12 @@ package kalshi
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"strings"
 	"time"
 
 	"github.com/fsctl/go-kalshi/pkg/kalshi/swagger"
@@ -125,25 +129,58 @@ func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
 	}
 }
 
-type MarketSide int64
+func (kc *KalshiClient) doAuthenticatedRequest(method string, url string, reqBody *strings.Reader) (*http.Response, []byte) {
+	req, _ := http.NewRequest(method, url, reqBody)
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Authorization", fmt.Sprintf("%s %s", kc.authToken.UserId, kc.authToken.Token))
 
-const (
-	Yes = iota
-	No
-)
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		log.Fatalf("Error: http.DefaultClient.Do failed: '%v'\n", err)
+	}
 
-func (kc *KalshiClient) OrderOpenPosition(marketId string, side MarketSide, contracts int, limit float64) error {
-	fmt.Printf("\nSUBCOMMAND NOT YET IMPLEMENTED\n")
+	data, _ := ioutil.ReadAll(res.Body)
+	res.Body.Close()
 
-	// open a new position on side
+	return res, data
+}
+
+// open a new position on side
+func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) error {
+	// serialize arguments to json
+	userOrderCreateRequest := swagger.UserOrderCreateRequest{
+		Count:              int32(contracts),
+		ExpirationUnixTs:   0,
+		MarketId:           marketId,
+		MaxCostCents:       0,
+		Price:              int64(limit * 100),
+		SellPositionCapped: false,
+		Side:               side.String(),
+	}
+	createReqJson, err := json.Marshal(userOrderCreateRequest)
+	if err != nil {
+		log.Fatalf("Error: json.Marshal(): %v\n", err)
+		return err
+	}
+	reqBody := strings.NewReader(string(createReqJson))
+
+	// construct url
+	url := fmt.Sprintf("%s/users/%s/orders", BaseURLV1, kc.authToken.UserId)
+
+	// perform request
+	res, data := kc.doAuthenticatedRequest("POST", url, reqBody)
+
+	// deserialize json
+	// TODO: deserialize the json
+	fmt.Printf("status: %d\n", res.StatusCode)
+	fmt.Printf("body: %s\n", data)
 
 	return nil
 }
 
-func (kc *KalshiClient) OrderClosePosition(marketId string, side MarketSide, contracts int, limit float64) error {
+// check that user has enough contracts on side, then open a new position on opposite side
+func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) error {
 	fmt.Printf("\nSUBCOMMAND NOT YET IMPLEMENTED\n")
-
-	// check that user has enough contracts on side, then open a new position on opposite side
 
 	return nil
 }

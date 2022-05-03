@@ -99,22 +99,22 @@ func main() {
 
 		switch *orderAction {
 		case "open-yes":
-			kc.OrderOpenPosition(marketId, kalshi.Yes, *orderContracts, *orderLimit)
+			kc.OrderOpenPosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: open-yes order failed: %v\n", err)
 			}
 		case "open-no":
-			kc.OrderOpenPosition(marketId, kalshi.No, *orderContracts, *orderLimit)
+			kc.OrderOpenPosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: open-no order failed: %v\n", err)
 			}
 		case "close-yes":
-			kc.OrderClosePosition(marketId, kalshi.Yes, *orderContracts, *orderLimit)
+			kc.OrderClosePosition(ctx, marketId, kalshi.Yes, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: close-yes order failed: %v\n", err)
 			}
 		case "close-no":
-			kc.OrderClosePosition(marketId, kalshi.No, *orderContracts, *orderLimit)
+			kc.OrderClosePosition(ctx, marketId, kalshi.No, *orderContracts, *orderLimit)
 			if err != nil {
 				log.Fatalf("Error: close-no order failed: %v\n", err)
 			}
