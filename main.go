@@ -58,7 +58,7 @@ func (kc *KalshiClient) doAuthenticatedRequest(method string, url string, reqBod
 }
 
 // open a new position on side
-func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (string, bool, error) {
+func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (orderId string, isResting bool, err error) {
 	// serialize arguments to json
 	userOrderCreateRequest := swagger.UserOrderCreateRequest{
 		Count:              int32(contracts),
@@ -94,7 +94,7 @@ func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, 
 }
 
 // check that user has enough contracts on side, then open a new position on opposite side
-func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (string, bool, error) {
+func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (orderId string, isResting bool, err error) {
 	// Return with error if we have no contracts on 'side' to close
 	ticker := kc.GetMarketTicker(ctx, marketId)
 	portfolio, err := kc.GetPortfolio(ctx)
@@ -115,7 +115,7 @@ func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string,
 
 	// Buy 'contracts' contracts on opposite of 'side'
 	openOnSide := side.Opposite()
-	orderId, isResting, err := kc.OrderOpenPosition(ctx, marketId, openOnSide, contracts, limit)
+	orderId, isResting, err = kc.OrderOpenPosition(ctx, marketId, openOnSide, contracts, limit)
 
 	return orderId, isResting, err
 }
