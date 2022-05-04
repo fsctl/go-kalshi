@@ -9,6 +9,14 @@ import (
 	"github.com/fsctl/go-kalshi/pkg/kalshi/swagger"
 )
 
+type marketIdTickerCache struct {
+	isPopulated bool
+	ticker      map[string]string
+	id          map[string]string
+}
+
+var idTickerCache marketIdTickerCache
+
 func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 	userGetMarketsResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarkets(ctx)
 	if err != nil {
@@ -31,35 +39,47 @@ func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 	}
 }
 
-func (kc *KalshiClient) GetMarketId(ctx context.Context, ticker string) string {
+func (kc *KalshiClient) populateIdTickerCache(ctx context.Context) {
 	userGetMarketsResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarkets(ctx)
 	if err != nil {
 		log.Fatalf("Error from apiClient.MarketApi.GetMarkets: '%v'", err)
-		return ""
 	}
 
+	idTickerCache.id = make(map[string]string)
+	idTickerCache.ticker = make(map[string]string)
+
 	for _, market := range userGetMarketsResponse.Markets {
-		if market.TickerName == ticker {
-			return market.Id
-		}
+		idTickerCache.id[market.TickerName] = market.Id
+		idTickerCache.ticker[market.Id] = market.TickerName
 	}
-	log.Fatalf("Error: could not find market '%v'\n", ticker)
-	return ""
+
+	idTickerCache.isPopulated = true
+}
+
+func (kc *KalshiClient) GetMarketId(ctx context.Context, ticker string) string {
+	if !idTickerCache.isPopulated {
+		kc.populateIdTickerCache(ctx)
+	}
+
+	if val, ok := idTickerCache.id[ticker]; ok {
+		return val
+	} else {
+		log.Fatalf("Error: could not find market '%v'\n", ticker)
+		return ""
+	}
 }
 
 func (kc *KalshiClient) GetMarketTicker(ctx context.Context, marketId string) string {
-	userGetMarketsResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarkets(ctx)
-	if err != nil {
-		log.Fatalf("Error from apiClient.MarketApi.GetMarkets: '%v'", err)
+	if !idTickerCache.isPopulated {
+		kc.populateIdTickerCache(ctx)
 	}
 
-	for _, market := range userGetMarketsResponse.Markets {
-		if market.Id == marketId {
-			return market.TickerName
-		}
+	if val, ok := idTickerCache.ticker[marketId]; ok {
+		return val
+	} else {
+		log.Fatalf("Error: could not find market '%v'\n", marketId)
+		return ""
 	}
-	log.Fatalf("Error: could not find market '%v'\n", marketId)
-	return ""
 }
 
 func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
