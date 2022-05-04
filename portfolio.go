@@ -8,7 +8,7 @@ import (
 	"math"
 	"strings"
 
-	"github.com/fsctl/go-kalshi/pkg/kalshi/swagger"
+	"github.com/fsctl/go-kalshi/swagger"
 )
 
 type PortfolioItem struct {

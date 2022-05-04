@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"github.com/fsctl/go-kalshi/pkg/kalshi/swagger"
+	"github.com/fsctl/go-kalshi/swagger"
 )
 
 type marketIdTickerCache struct {
