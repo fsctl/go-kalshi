@@ -1,2 +1,2 @@
-../../kalshi-tool : *.go ../../pkg/kalshi/*.go
+../../kalshi-tool : *.go ../../*.go
 	go build -o ../../kalshi-tool *.go

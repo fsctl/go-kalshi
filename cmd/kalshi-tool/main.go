@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/fsctl/go-kalshi/pkg/kalshi"
-	"github.com/fsctl/go-kalshi/pkg/kalshi/helpers"
+	"github.com/fsctl/go-kalshi"
+	"github.com/fsctl/go-kalshi/helpers"
 )
 
 func usage() {
