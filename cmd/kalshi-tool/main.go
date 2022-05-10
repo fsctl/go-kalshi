@@ -38,6 +38,9 @@ If there's not, it creates a resting order for Yes with a bid price of 0.20.
 The second command closes a Yes position. First it verifies that you have a Yes position of that size or larger,
 then it buys a No position in that amount with a limit price (max you'll pay for No) of 0.50.
 
+'kalshi-tool list-resting'
+The list-resting subcommand prints a list of all resting orders and their ids.
+
 'kalshi-tool cancel-resting --order 1250e322-c586-5ffb-bb6e-14a9503b8997'
 The cancel-resting subcommand cancels an order by its id.
 
@@ -157,6 +160,20 @@ func main() {
 		}
 
 		fmt.Printf("Success: order canceled\n")
+	case "list-resting":
+		restingOrders, err := kc.GetRestingOrders(ctx)
+		if err != nil {
+			log.Fatalf("Error in GetRestingOrders: %v\n", err)
+		}
+		fmt.Printf("Resting orders:\n")
+		for _, order := range restingOrders {
+			fmt.Printf("  %s: %s (%s, %d @ %.2f)\n",
+				order.Id, order.MarketTicker, order.Side.String(),
+				order.Contracts, order.Price)
+		}
+		if len(restingOrders) == 0 {
+			fmt.Printf("  (none)\n")
+		}
 	default:
 		log.Fatalf("Error: did not recognize subcommand '%v'\n", subcommand)
 	}

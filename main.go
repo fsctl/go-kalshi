@@ -151,5 +151,57 @@ func (kc *KalshiClient) CancelRestingOrder(ctx context.Context, orderId string) 
 	return nil
 }
 
-// TODO:
-// - get list of user's resting orders with id's
+// RestingOrder represents a single resting order for the logged in user.
+type RestingOrder struct {
+	Id           string
+	MarketTicker string
+	Side         MarketSide
+	Contracts    int64
+	Price        float64
+}
+
+// GetRestingOrders returns an array of all resting orders for the logged in user.
+func (kc *KalshiClient) GetRestingOrders(ctx context.Context) ([]RestingOrder, error) {
+	restingOrders := make([]RestingOrder, 0)
+
+	// construct url
+	url := fmt.Sprintf("%s/users/%s/orders?status=resting", BaseURLV1, kc.authToken.UserId)
+
+	// perform request
+	reqBody := strings.NewReader("")
+	res, data := kc.doAuthenticatedRequest("GET", url, reqBody)
+	if res.StatusCode != 200 {
+		return restingOrders, fmt.Errorf("error: orderopenposition res.statuscode is not 200 (it's %d)", res.StatusCode)
+	}
+
+	// deserialize json
+	var userOrdersGetResponse swagger.UserOrdersGetResponse
+	if err := json.Unmarshal(data, &userOrdersGetResponse); err != nil {
+		log.Fatalf("Error: failed to unmarshal: %v", err)
+	}
+
+	// build return array
+	for _, apiOrder := range *userOrdersGetResponse.Orders {
+		id := apiOrder.OrderId
+		marketId := apiOrder.MarketId
+		marketTicker := kc.GetMarketTicker(ctx, marketId)
+		var side MarketSide
+		if apiOrder.IsYes {
+			side = Yes
+		} else {
+			side = No
+		}
+		contracts := apiOrder.RemainingCount
+		price := float64(apiOrder.Price) / 100
+		restingOrder := RestingOrder{
+			Id:           id,
+			MarketTicker: marketTicker,
+			Side:         side,
+			Contracts:    int64(contracts),
+			Price:        price,
+		}
+		restingOrders = append(restingOrders, restingOrder)
+	}
+
+	return restingOrders, nil
+}
