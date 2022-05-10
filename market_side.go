@@ -5,14 +5,17 @@ import (
 	"log"
 )
 
-// define enum of market sides
+// MarketSide is an enum of the two market sides.
 type MarketSide int64
 
+// These are the two market side values that a MarketSide
+// variable can be set to.
 const (
 	Yes = iota
 	No
 )
 
+// Converts a MarketSide value to its string representation.
 func (s MarketSide) String() string {
 	switch s {
 	case Yes:
@@ -25,6 +28,8 @@ func (s MarketSide) String() string {
 	}
 }
 
+// Returns the opposite side of the MarketSide value. The opposite of Yes is No
+// and vice-versa.
 func (s MarketSide) Opposite() MarketSide {
 	switch s {
 	case Yes:

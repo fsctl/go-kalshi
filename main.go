@@ -12,17 +12,21 @@ import (
 	"github.com/fsctl/go-kalshi/swagger"
 )
 
+// This constant represents the Kalshi API endpoint URL to use.
 const (
 	BaseURLV1 = "https://trading-api.kalshi.com/v1"
 )
 
-// KalshiClient is a higher level API client than the Swagger generated client.  It
-// does complex actions that involve multiple API calls.
+// KalshiClient is a higher level API client than the Swagger generated client.
+// It exposes methods to do complex actions that involve multiple underlying
+// API calls.
 type KalshiClient struct {
-	authToken        AuthToken
+	authToken        authToken
 	swaggerApiClient *swagger.APIClient
 }
 
+// NewKalshiClient() constructs a new KalshiClient struct that is initialized
+// and ready for use, using the specified Kalshi credentials.
 func NewKalshiClient(ctx context.Context, kalshiUsername string, kalshiPassword string) (*KalshiClient, error) {
 	authToken, err := getAuthToken(ctx, kalshiUsername, kalshiPassword)
 	if err != nil {
@@ -57,7 +61,13 @@ func (kc *KalshiClient) doAuthenticatedRequest(method string, url string, reqBod
 	return res, data
 }
 
-// open a new position on side
+// This function opens a new position on `side` in the specified market for
+// 'contracts' number of contracts with a limit price of limit (must be between
+// 0.01 and 0.99 inclusive).
+//
+// Returns the order id (for cancelation if the order becomes a resting order),
+// a boolean indicating whether the order executed or has become a resting order,
+// and an error value that is non-nil if the function failed.
 func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (orderId string, isResting bool, err error) {
 	// serialize arguments to json
 	userOrderCreateRequest := swagger.UserOrderCreateRequest{
@@ -93,7 +103,13 @@ func (kc *KalshiClient) OrderOpenPosition(ctx context.Context, marketId string, 
 	return userOrderCreateResponse.Order.OrderId, (userOrderCreateResponse.Order.Status == "resting"), nil
 }
 
-// check that user has enough contracts on side, then open a new position on opposite side
+// This function checks that user has enough contracts on `side`, and if so
+// opens a new position on opposite side to close out the user's current position.
+//
+// Parameters have the same meaning as in OrderOpenPosition. Note that `limit` is
+// the maximum you will pay to open the contract(s) on the other side.
+//
+// Return values have the same meaning as in OrderOpenPosition.
 func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string, side MarketSide, contracts int, limit float64) (orderId string, isResting bool, err error) {
 	// Return with error if we have no contracts on 'side' to close
 	ticker := kc.GetMarketTicker(ctx, marketId)
@@ -120,6 +136,7 @@ func (kc *KalshiClient) OrderClosePosition(ctx context.Context, marketId string,
 	return orderId, isResting, err
 }
 
+// This function cancels a resting order given its order id.
 func (kc *KalshiClient) CancelRestingOrder(ctx context.Context, orderId string) error {
 	// construct url
 	url := fmt.Sprintf("%s/users/%s/orders/%s", BaseURLV1, kc.authToken.UserId, orderId)

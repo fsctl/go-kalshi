@@ -11,23 +11,31 @@ import (
 	"github.com/fsctl/go-kalshi/swagger"
 )
 
+// PortfolioItem is a single set of contracts on a given market represented
+// by Ticker.
 type PortfolioItem struct {
 	Ticker    string
 	Contracts int64
 	Side      MarketSide
 }
 
+// Portfolio stores an array of all PortfolioItems in the user's portfolio.
 type Portfolio struct {
 	Items []PortfolioItem
 }
 
+// Print() prints all elements of the portfolio.
 func (p *Portfolio) Print() {
 	fmt.Printf("Portfolio:\n")
 	for _, item := range p.Items {
 		fmt.Printf("  %s (%s): %d contracts\n", item.Ticker, item.Side.String(), item.Contracts)
 	}
+	if len(p.Items) == 0 {
+		fmt.Printf("  (none)\n")
+	}
 }
 
+// GetPortfolio returns the portfolio of the user associated with the KalshiClient instance.
 func (kc *KalshiClient) GetPortfolio(ctx context.Context) (*Portfolio, error) {
 	p := Portfolio{
 		Items: make([]PortfolioItem, 0),

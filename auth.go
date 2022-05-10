@@ -9,20 +9,24 @@ import (
 	"net/http"
 )
 
-type AuthToken struct {
+// Kalshi API authentication token.
+type authToken struct {
 	Token       string `json:"token"`
 	UserId      string `json:"user_id"`
 	AccessLevel string `json:"access_level"`
 }
 
-func (a AuthToken) Text() string {
+// Debugging function to print out a Kalshi API authentication token in its
+// string representation.
+func (a authToken) Text() string {
 	p := fmt.Sprintf(
 		"Token: %s\nUserId : %s\nAccessLevel: %s\n",
 		a.Token, a.UserId, a.AccessLevel)
 	return p
 }
 
-func getAuthToken(ctx context.Context, kalshiUsername string, kalshiPassword string) (*AuthToken, error) {
+// Uses the specified Kalshi credentials to return an authToken struct.
+func getAuthToken(ctx context.Context, kalshiUsername string, kalshiPassword string) (*authToken, error) {
 	postBody, _ := json.Marshal(map[string]string{
 		"email":    kalshiUsername,
 		"password": kalshiPassword,
@@ -35,7 +39,7 @@ func getAuthToken(ctx context.Context, kalshiUsername string, kalshiPassword str
 	}
 	defer resp.Body.Close()
 
-	var authToken AuthToken
+	var authToken authToken
 	if err := json.NewDecoder(resp.Body).Decode(&authToken); err != nil {
 		log.Fatalf("ERROR:  decoding auth token response:  '%v'\n", err)
 		return nil, err

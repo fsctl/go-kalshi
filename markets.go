@@ -9,14 +9,19 @@ import (
 	"github.com/fsctl/go-kalshi/swagger"
 )
 
+// This struct caches the mapping of a market ticker onto a
+// market id, and vice-versa.
 type marketIdTickerCache struct {
 	isPopulated bool
 	ticker      map[string]string
 	id          map[string]string
 }
 
+// Stores the cache of ticker-id mappings.
 var idTickerCache marketIdTickerCache
 
+// PrintMarketsList prints to stdout a list of all active Kalshi markets and
+// their tickers.
 func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 	userGetMarketsResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarkets(ctx)
 	if err != nil {
@@ -39,6 +44,10 @@ func (kc *KalshiClient) PrintMarketsList(ctx context.Context) {
 	}
 }
 
+// populateIdTickerCache is called the first time we need to make a call to
+// kc.swaggerApiClient.MarketApi.GetMarkets() to get the ticker-id mappings.
+// It populates the internal cache so that subsequent calls don't have to
+// repeat the slow kc.swaggerApiClient.MarketApi.GetMarkets() API call.
 func (kc *KalshiClient) populateIdTickerCache(ctx context.Context) {
 	userGetMarketsResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarkets(ctx)
 	if err != nil {
@@ -56,6 +65,8 @@ func (kc *KalshiClient) populateIdTickerCache(ctx context.Context) {
 	idTickerCache.isPopulated = true
 }
 
+// GetMarketId returns the market id of a market specified by `ticker`.
+// It is the inverse of GetMarketTicker().
 func (kc *KalshiClient) GetMarketId(ctx context.Context, ticker string) string {
 	if !idTickerCache.isPopulated {
 		kc.populateIdTickerCache(ctx)
@@ -69,6 +80,8 @@ func (kc *KalshiClient) GetMarketId(ctx context.Context, ticker string) string {
 	}
 }
 
+// GetMarketTicker returns the market ticker of a market specified by `marketId`.
+// It is the inverse of GetMarketId().
 func (kc *KalshiClient) GetMarketTicker(ctx context.Context, marketId string) string {
 	if !idTickerCache.isPopulated {
 		kc.populateIdTickerCache(ctx)
@@ -82,6 +95,9 @@ func (kc *KalshiClient) GetMarketTicker(ctx context.Context, marketId string) st
 	}
 }
 
+// PrintMarket prints out the bid order book for a market, along with
+// helpful output on how to open or close a position on either side of
+// the given market.
 func (kc *KalshiClient) PrintMarket(ctx context.Context, id string) {
 	userGetMarketResponse, _, err := kc.swaggerApiClient.MarketApi.GetMarket(ctx, id)
 	if err != nil {
