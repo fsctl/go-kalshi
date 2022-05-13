@@ -14,6 +14,7 @@ swagger:
 	rm swagger/outfile.zip
 
 update-pkg-cache:
+	# TODO: not sure `go mod download` actually updates pkg.go.dev
 	GOPROXY=https://proxy.golang.org GO111MODULE=on \
 	go mod download github.com/fsctl/go-kalshi@$(GH_VERSION)
 
