@@ -6,7 +6,7 @@ Experimental Go wrapper for Kalshi API.
 
 This package does not expose all of the features of the Kalshi API. However, it does:
 
- * Demonstrate how to codegen Go code from Kalshi's swagger file (available [here](https://kalshi-public-docs.s3.amazonaws.com/KalshiAPI.html)). See `pkg/kalshi/Makefile`.
+ * Demonstrate how to codegen Go code from Kalshi's swagger file (available [here](https://kalshi-public-docs.s3.amazonaws.com/KalshiAPI.html)). See `Makefile`.
  * Show how to write higher level abstractions atop the Kalshi API
  * Create a simple CLI tool `kalshi-tool` that performs actions like listing markets, displaying market order books, etc.
 
