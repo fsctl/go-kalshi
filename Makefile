@@ -1,8 +1,8 @@
-.PHONY: clean all
+.PHONY: clean all update-pkg-cache
 
 GOFLAGS ?=
 
-VERSION="$(shell go list -m -json github.com/fsctl/go-kalshi@latest | jq --raw-output .Version)"
+GH_VERSION=$(shell GOPROXY=direct go list -m -json github.com/fsctl/go-kalshi@latest | jq --raw-output .Version)
 
 all: swagger
 	$(MAKE) -C cmd/kalshi-tool
@@ -14,7 +14,8 @@ swagger:
 	rm swagger/outfile.zip
 
 update-pkg-cache:
-	echo $(VERSION)
+	GOPROXY=https://proxy.golang.org GO111MODULE=on \
+	go mod download github.com/fsctl/go-kalshi@$(GH_VERSION)
 
 clean:
 	@rm -rf kalshi-tool
